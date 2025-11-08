@@ -4,36 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Water Tracker</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>Water Tracker</h1>
+        <h1>Water Tracker 💧</h1>
+
         <div class="goal-container">
             <label for="goal">Daily Goal (ml):</label>
             <input type="number" id="goal" value="2000" step="100">
         </div>
+
         <div class="bottle-container">
-            <svg class="bottle" width="150" height="300" viewBox="0 0 100 200">
-                <defs>
-                    <clipPath id="bottle-clip">
-                        <path d="M30,190 C10,190 10,170 10,150 L10,20 C10,0 30,0 30,0 L70,0 C70,0 90,0 90,20 L90,150 C90,170 90,190 70,190 Z" />
-                    </clipPath>
-                </defs>
-                <rect class="water" x="0" y="0" width="100" height="200" clip-path="url(#bottle-clip)" />
-                <path class="bottle-outline" d="M30,190 C10,190 10,170 10,150 L10,20 C10,0 30,0 30,0 L70,0 C70,0 90,0 90,20 L90,150 C90,170 90,190 70,190 Z" stroke="black" stroke-width="4" fill="none" />
-            </svg>
+            <div class="human-mask">
+                <div class="water-level">
+                    <div class="wave wave1"></div>
+                    <div class="wave wave2"></div>
+                </div>
+                <img src="{{ url_for('static', filename='assets/Human.svg') }}" alt="Human" class="svg-img">
+            </div>
         </div>
+
         <div class="intake-container">
             <button class="intake-btn" data-amount="200">+200ml</button>
             <button class="intake-btn" data-amount="500">+500ml</button>
         </div>
+
         <div class="total-container">
             <p>Total Intake: <span id="total-intake">0</span>ml</p>
         </div>
+
         <button id="reset-btn">Reset</button>
         <button id="enable-notifications-btn">Enable Reminders</button>
     </div>
-    <script src="/static/script.js"></script>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
