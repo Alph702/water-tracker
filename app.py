@@ -1,6 +1,7 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, Request
 import sqlite3
 import os
+from datetime import date as d
 
 app = Flask(__name__)
 
@@ -18,53 +19,36 @@ def init_db():
     conn.commit()
     conn.close()
 
+def get_today(date: str | None = None) -> str:
+    return d.today().isoformat() if not date else date
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/api/data', methods=['GET'])
-def get_data():
-    conn = get_db_connection()
-    today = request.args.get('date')
-    if not today:
-        from datetime import date
-        today = date.today().isoformat()
-    
-    total_intake = conn.execute('SELECT SUM(amount) FROM water_intake WHERE date = ?', (today,)).fetchone()[0]
-    conn.close()
-    
-    return jsonify({'total_intake': total_intake or 0})
-
-@app.route('/api/data', methods=['POST'])
-def add_data():
-    data = request.get_json()
-    amount = data.get('amount')
-    today = data.get('date')
-    if not today:
-        from datetime import date
-        today = date.today().isoformat()
-
-    conn = get_db_connection()
-    conn.execute('INSERT INTO water_intake (date, amount) VALUES (?, ?)', (today, amount))
-    conn.commit()
-    conn.close()
-    
-    return jsonify({'status': 'success'})
-
-@app.route('/api/data', methods=['DELETE'])
-def reset_data():
-    data = request.get_json()
-    today = data.get('date')
-    if not today:
-        from datetime import date
-        today = date.today().isoformat()
-
-    conn = get_db_connection()
-    conn.execute('DELETE FROM water_intake WHERE date = ?', (today,))
-    conn.commit()
-    conn.close()
-    
-    return jsonify({'status': 'success'})
+@app.route('/api/data', methods=['GET', 'POST', 'DELETE'])
+def data():
+    if request.method == 'GET':
+        with get_db_connection() as conn:
+            today = get_today(request.args.get('date'))
+            total_intake = conn.execute('SELECT SUM(amount) FROM water_intake WHERE date = ?', (today,)).fetchone()[0]
+        return jsonify({'total_intake': total_intake or 0})
+    elif request.method == 'POST':
+        data = request.get_json()
+        amount = data.get('amount')
+        today = get_today(data.get('date'))
+        with get_db_connection() as conn:
+            conn.execute('INSERT INTO water_intake (date, amount) VALUES (?, ?)', (today, amount))
+            conn.commit()
+        return jsonify({'status': 'success'})
+    elif request.method == 'DELETE':
+        data = request.get_json()
+        today = get_today(data.get('date'))
+        with get_db_connection() as conn:
+            conn.execute('DELETE FROM water_intake WHERE date = ?', (today,))
+            conn.commit()
+        return jsonify({'status': 'success'})
 
 if __name__ == '__main__':
     init_db()
